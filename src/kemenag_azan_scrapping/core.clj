@@ -24,3 +24,17 @@
   (if error
     (println "Failed, exception: " error)
     (swap! kemenag-index (fn [_] (html-string->provinces body)))))
+
+
+
+(def cities (atom nil))
+
+(let [options { :headers {"Host" "sihat.kemenag.go.id"
+                          "Origin" "http://sihat.kemenag.go.id"
+                          "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
+               :form-params {"q" "ACEH"} }
+      {:keys [status headers body error] :as resp}
+      @(http/post "http://sihat.kemenag.go.id/site/get_kota_lintang" options)]
+  (if error
+    (println "Failed, exception: " error)
+    (swap! cities (fn [_] (html-string->html-resource body)))))
