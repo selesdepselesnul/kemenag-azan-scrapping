@@ -30,20 +30,17 @@
 (def cities (atom nil))
 (def cities-raw (atom nil))
 
-(defn get-content [res]
-  (-> res
-      (get-in [:content])
-      first
-      (get :content)
-      first
-      (get :content)
-      first
-      (get :content)))
+(defn get-select [res]
+  (if (= :select (:tag res))
+    (:content res)
+    (recur (-> res
+               (get-in [:content])
+               first))))
 
 (defn get-cities [html-string]
   (let [first-res (->> (html-string->html-resource html-string)
                        first)]
-    (->> (get-content first-res)
+    (->> (get-select first-res)
          (map (fn [x] {:value (get-in x [:attrs :value])
                       :text (:content x)}))
          (filter #(not= "" (:value %))))))
