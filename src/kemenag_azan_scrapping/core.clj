@@ -28,6 +28,25 @@
 
 
 (def cities (atom nil))
+(def cities-raw (atom nil))
+
+(defn get-content [res]
+  (-> res
+      (get-in [:content])
+      first
+      (get :content)
+      first
+      (get :content)
+      first
+      (get :content)))
+
+(defn get-cities [html-string]
+  (let [first-res (->> (html-string->html-resource html-string)
+                       first)]
+    (->> (get-content first-res)
+         (map (fn [x] {:value (get-in x [:attrs :value])
+                      :text (:content x)}))
+         (filter #(not= "" (:value %))))))
 
 (let [options { :headers {"Host" "sihat.kemenag.go.id"
                           "Origin" "http://sihat.kemenag.go.id"
@@ -37,4 +56,6 @@
       @(http/post "http://sihat.kemenag.go.id/site/get_kota_lintang" options)]
   (if error
     (println "Failed, exception: " error)
-    (swap! cities (fn [_] (html-string->html-resource body)))))
+    (swap! cities-raw (fn [_] body))))
+
+(get-cities @cities-raw)
