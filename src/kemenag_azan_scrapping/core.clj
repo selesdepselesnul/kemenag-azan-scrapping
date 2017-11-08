@@ -1,6 +1,7 @@
 (ns kemenag-azan-scrapping.core
   (:require [org.httpkit.client :as http]
-            [net.cgrand.enlive-html :as enl-html]))
+            [net.cgrand.enlive-html :as enl-html]
+            [clojure.data.json :as json]))
 
 (defn html-string->html-resource [x]
   (enl-html/html-resource (java.io.StringReader. x)))
@@ -49,3 +50,16 @@
     (if error
       nil
       (html-string->cities body))))
+
+(defn get-azans-sync [year month location]
+  (let [options { :headers {"Host" "sihat.kemenag.go.id"
+                            "Origin" "http://sihat.kemenag.go.id"
+                            "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
+                 :form-params {"tahun" year
+                               "bulan" month
+                               "lokasi" location}}
+        {:keys [status headers body error] :as resp}
+        @(http/post "http://sihat.kemenag.go.id/site/get_waktu_sholat" options)]
+    (if error
+      nil
+      (get (json/read-str body) "data"))))
