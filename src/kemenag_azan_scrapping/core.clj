@@ -24,9 +24,6 @@
       nil
       (html-string->provinces body))))
 
-(def cities (atom nil))
-(def cities-raw (atom nil))
-
 (defn get-select [res]
   (if (= :select (:tag res))
     (:content res)
@@ -34,7 +31,7 @@
                (get-in [:content])
                first))))
 
-(defn get-cities [html-string]
+(defn html-string->cities [html-string]
   (let [first-res (->> (html-string->html-resource html-string)
                        first)]
     (->> (get-select first-res)
@@ -42,14 +39,13 @@
                       :text (:content x)}))
          (filter #(not= "" (:value %))))))
 
-(let [options { :headers {"Host" "sihat.kemenag.go.id"
-                          "Origin" "http://sihat.kemenag.go.id"
-                          "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
-               :form-params {"q" "ACEH"} }
-      {:keys [status headers body error] :as resp}
-      @(http/post "http://sihat.kemenag.go.id/site/get_kota_lintang" options)]
-  (if error
-    (println "Failed, exception: " error)
-    (swap! cities-raw (fn [_] body))))
-
-(get-cities @cities-raw)
+(defn get-cities-sync [province]
+  (let [options { :headers {"Host" "sihat.kemenag.go.id"
+                            "Origin" "http://sihat.kemenag.go.id"
+                            "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
+                 :form-params {"q" province} }
+        {:keys [status headers body error] :as resp}
+        @(http/post "http://sihat.kemenag.go.id/site/get_kota_lintang" options)]
+    (if error
+      nil
+      (html-string->cities body))))
