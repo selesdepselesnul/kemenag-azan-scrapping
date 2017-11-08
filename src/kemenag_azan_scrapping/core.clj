@@ -2,8 +2,6 @@
   (:require [org.httpkit.client :as http]
             [net.cgrand.enlive-html :as enl-html]))
 
-(def kemenag-index (atom nil))
-
 (defn html-string->html-resource [x]
   (enl-html/html-resource (java.io.StringReader. x)))
 
@@ -19,13 +17,12 @@
        (map #(:value (:attrs %)))
        (filter #(not= "" %))))
 
-(let [{:keys [status headers body error] :as resp}
-      @(http/get "http://sihat.kemenag.go.id/waktu-sholat")]
-  (if error
-    (println "Failed, exception: " error)
-    (swap! kemenag-index (fn [_] (html-string->provinces body)))))
-
-
+(defn get-provinces-sync []
+  (let [{:keys [status headers body error] :as resp}
+        @(http/get "http://sihat.kemenag.go.id/waktu-sholat")]
+    (if error
+      nil
+      (html-string->provinces body))))
 
 (def cities (atom nil))
 (def cities-raw (atom nil))
