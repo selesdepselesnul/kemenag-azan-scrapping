@@ -40,26 +40,25 @@
                       :text (:content x)}))
          (filter #(not= "" (:value %))))))
 
-(defn get-cities-sync [province]
+(defn post-kemenag [url params f-success]
   (let [options { :headers {"Host" "sihat.kemenag.go.id"
                             "Origin" "http://sihat.kemenag.go.id"
                             "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
-                 :form-params {"q" province} }
+                 :form-params params }
         {:keys [status headers body error] :as resp}
-        @(http/post "http://sihat.kemenag.go.id/site/get_kota_lintang" options)]
+        @(http/post url options)]
     (if error
       nil
-      (html-string->cities body))))
+      (f-success body))))
+
+(defn get-cities-sync [province]
+  (post-kemenag "http://sihat.kemenag.go.id/site/get_kota_lintang"
+                {"q" province}
+                #(html-string->cities %)))
 
 (defn get-azans-sync [year month location]
-  (let [options { :headers {"Host" "sihat.kemenag.go.id"
-                            "Origin" "http://sihat.kemenag.go.id"
-                            "Referer" "http://sihat.kemenag.go.id/waktu-sholat"}
-                 :form-params {"tahun" year
-                               "bulan" month
-                               "lokasi" location}}
-        {:keys [status headers body error] :as resp}
-        @(http/post "http://sihat.kemenag.go.id/site/get_waktu_sholat" options)]
-    (if error
-      nil
-      (get (json/read-str body) "data"))))
+  (post-kemenag "http://sihat.kemenag.go.id/site/get_waktu_sholat"
+                {"tahun" year
+                 "bulan" month
+                 "lokasi" location}
+                #(get (json/read-str %) "data")))
