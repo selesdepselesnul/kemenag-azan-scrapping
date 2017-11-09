@@ -56,9 +56,13 @@
                 {"q" province}
                 #(html-string->cities %)))
 
-(defn get-azans-sync [year month location]
+(defn get-azans-sync [year month location & date]
   (post-kemenag "http://sihat.kemenag.go.id/site/get_waktu_sholat"
                 {"tahun" year
                  "bulan" month
                  "lokasi" location}
-                #(get (json/read-str %) "data")))
+                (fn [x]
+                  (let [azans (get (json/read-str x) "data")]
+                    (if (nil? date)
+                      azans
+                      (get azans (first date)))))))
