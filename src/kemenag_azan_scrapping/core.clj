@@ -1,7 +1,8 @@
 (ns kemenag-azan-scrapping.core
   (:require [org.httpkit.client :as http]
             [net.cgrand.enlive-html :as enl-html]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [clojure.string :as str]))
 
 (defn html-string->html-resource [x]
   (enl-html/html-resource (java.io.StringReader. x)))
@@ -66,3 +67,15 @@
                     (if (nil? date)
                       azans
                       (get azans (first date)))))))
+
+(defn now []
+  (.format (java.text.SimpleDateFormat. "yyyy-MM-dd")
+           (new java.util.Date)))
+
+(defn get-azan-today-sync [location]
+  (let [date-now (now)
+        splitted-date (str/split date-now #"-")]
+    (get-azans-sync (first splitted-date)
+                    (second splitted-date)
+                    location
+                    date-now)))
